@@ -72,7 +72,7 @@ fn main() {
                 .long("folder")
                 .value_name("folder")
                 .default_value("")
-                .takes_value(true),
+                .multiple(true),
         )
         .arg(
             Arg::with_name("websocket")
@@ -117,10 +117,6 @@ fn main() {
     let folders: Vec<&str> = matches.values_of("folder").unwrap().collect();
     let listen_for_str: Vec<&str> = matches.values_of("listen_for").unwrap().collect();
     let listen_for: Vec<String> = listen_for_str.iter().map(|s| s.to_string()).collect();
-    println!(
-        "{:?} {:?} {:?} {:?} {:?} {:?} {:?}",
-        folders, prefixes, extention, websockets, listen_for, print_all, print_logged
-    );
 
     // if more than one websocket will be logged either the folders or the prefixes have to be
     // different for no overlap
@@ -160,7 +156,6 @@ fn main() {
         let file = files[i].clone();
         let listen = listen_for.clone();
         let w = websockets[i].to_string();
-        println!("{}", w);
         thread::spawn(move || {
             ws::connect(w, |_| Client {
                 file: file.clone(),
