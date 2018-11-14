@@ -141,7 +141,7 @@ fn main() {
             f = folders[0];
         }
         if f != "" {
-            std::fs::create_dir(f).expect("count not create folder for the log file");
+            std::fs::create_dir(f);
         }
         files.push(Arc::new(Mutex::new(
             OpenOptions::new()
