@@ -1,0 +1,11 @@
+[package]
+name = "ws-logger"
+version = "0.1.0"
+authors = ["Arne Vogel"]
+
+[dependencies]
+chrono = "0.4"
+clap = "*"
+[dependencies.ws]
+version = "*"
+features = ["ssl"]
