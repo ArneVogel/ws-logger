@@ -1,5 +1,6 @@
 extern crate chrono;
 extern crate clap;
+extern crate url;
 extern crate ws;
 
 use chrono::prelude::*;
@@ -8,21 +9,35 @@ use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::{thread, time};
+use url::Url;
+use ws::{CloseCode, Error, Sender};
 
 struct Client {
     file: Arc<Mutex<File>>,
+    out: Sender,
+    url: String,
     listen_for: Vec<String>,
     print_all: bool,
     print_logged: bool,
 }
 
+//https://ws-rs.org/api_docs/ws/trait.Handler.html
 impl ws::Handler for Client {
     fn on_open(&mut self, _: ws::Handshake) -> ws::Result<()> {
         Ok(())
     }
+
+    fn on_close(&mut self, _: CloseCode, _: &str) {}
+
+    fn on_error(&mut self, _: Error) {}
+
     fn on_message(&mut self, msg: ws::Message) -> ws::Result<()> {
         let msg_string = format!("{}", msg);
-        let msg_type = msg_string.split_whitespace().next().unwrap_or("").to_string();
+        let msg_type = msg_string
+            .split_whitespace()
+            .next()
+            .unwrap_or("")
+            .to_string();
 
         if self.listen_for[0] == "LISTEN_FOR_EVERYTHING" {
             let mut f = self.file.lock().unwrap();
@@ -156,13 +171,18 @@ fn main() {
         let file = files[i].clone();
         let listen = listen_for.clone();
         let w = websockets[i].to_string();
-        thread::spawn(move || {
-            ws::connect(w, |_| Client {
+        let w_copy = websockets[i].to_string(); //only used to give it to the client object
+        thread::spawn(move || loop {
+            ws::connect(w.to_string(), |out| Client {
                 file: file.clone(),
+                out: out,
+                url: w.to_string(),
                 listen_for: listen.clone(),
                 print_all: print_all,
                 print_logged: print_logged,
-            })
+            });
+            thread::sleep(time::Duration::from_millis(1000));
+            println!("reconnecting");
         });
     }
     let sleep_duration = time::Duration::from_millis(10000);

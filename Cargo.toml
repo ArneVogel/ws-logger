@@ -6,6 +6,7 @@ authors = ["Arne Vogel"]
 [dependencies]
 chrono = "0.4"
 clap = "*"
+url = "*"
 [dependencies.ws]
 version = "*"
 features = ["ssl"]
